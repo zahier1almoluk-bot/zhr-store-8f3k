@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a8a">
+<meta name="application-name" content="AlzaherStore">
+<meta name="apple-mobile-web-app-title" content="AlzaherStore">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>محلات الزاهر للزيوت والاسبيرات</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  :root {
+    --primary: #1e3a8a;
+    --primary-light: #3b82f6;
+    --accent: #f59e0b;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #e2e8f0;
+  }
+  * { box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif; }
+  body { margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; }
+  header {
+    background: linear-gradient(135deg, var(--primary), #0f172a);
+    color: #fff; padding: 16px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  header h1 { margin: 0 0 4px; font-size: 1.2rem; }
+  header p { margin: 0; font-size: 0.8rem; color: #cbd5e1; }
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    padding: 12px; background: #fff; border-bottom: 1px solid var(--border);
+  }
+  .stat-box { background: var(--bg); padding: 8px; border-radius: 8px; text-align: center; }
+  .stat-box span { display: block; font-size: 0.75rem; color: var(--muted); }
+  .stat-box strong { font-size: 1rem; color: var(--primary); }
+  .toolbar { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .search-row { display: flex; gap: 8px; }
+  input, select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 10px; font-size: 0.95rem; background: #fff;
+  }
+  .btn {
+    border: none; border-radius: 10px; padding: 10px 14px; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 0.9rem; transition: 0.2s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-accent { background: var(--accent); color: #000; }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text); }
+  .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .items-list { padding: 0 12px; display: flex; flex-direction: column; gap: 10px; }
+  .item-card {
+    background: var(--card); border-radius: 12px; padding: 12px;
+    border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .item-title { font-weight: 700; font-size: 1rem; color: var(--text); line-height: 1.4; }
+  .badge { font-size: 0.72rem; padding: 3px 8px; border-radius: 20px; background: #e0e7ff; color: var(--primary); white-space: nowrap; }
+  .prices-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    background: var(--bg); padding: 8px; border-radius: 8px; text-align: center; margin-bottom: 8px;
+  }
+  .prices-grid div span { display: block; font-size: 0.7rem; color: var(--muted); }
+  .prices-grid div strong { font-size: 0.95rem; }
+  .buy-val { color: #475569; }
+  .sell-val { color: var(--success); }
+  .qty-val { color: var(--primary); }
+  .item-footer { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--muted); }
+  .card-actions { display: flex; gap: 6px; }
+  .card-actions button { padding: 6px 10px; font-size: 0.8rem; }
+  .modal {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    z-index: 200; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal.active { display: flex; }
+  .modal-content {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 440px;
+    padding: 20px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-content h2 { margin-top: 0; font-size: 1.1rem; color: var(--primary); }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 0.85rem; margin-bottom: 4px; font-weight: 600; }
+  #reader { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+
+  .main-tabs{display:flex;gap:8px;padding:10px 12px;background:#fff;position:sticky;top:72px;z-index:90;border-bottom:1px solid var(--border)}
+  .main-tabs .btn{flex:1}.page-view{display:none}.page-view.active{display:block}
+  .sales-wrap{padding:12px;max-width:1000px;margin:auto}.sales-panel{background:#fff;border:1px solid var(--border);border-radius:14px;padding:12px;margin-bottom:12px}
+  .sales-panel h2{font-size:1.05rem;margin:0 0 10px;color:var(--primary)}.invoice-current{border:2px solid #dbeafe;box-shadow:0 3px 12px rgba(30,58,138,.07)}.invoice-current>h2{display:flex;align-items:center;justify-content:space-between}.invoice-count{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;background:#dbeafe;color:var(--primary);font-size:.85rem;padding:0 8px}.sales-search-panel{margin-top:14px}.sales-search{display:flex;gap:7px}
+  .sales-results{max-height:55vh;min-height:160px;overflow:auto;margin-top:8px;border:1px solid var(--border);border-radius:10px}.sales-result{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px;border-bottom:1px solid var(--border)}
+  .sales-result small{display:block;color:var(--muted)}.sales-lines{width:100%;border-collapse:collapse;font-size:.84rem}.sales-lines th,.sales-lines td{padding:8px 5px;border-bottom:1px solid var(--border);text-align:center}.sales-lines th{background:#f1f5f9}
+  .sales-lines input{min-width:60px;padding:6px}.sales-total{display:flex;justify-content:space-between;padding:6px 0}.sales-total.grand{font-size:1.15rem;font-weight:800;color:var(--primary);border-top:1px solid var(--border);margin-top:6px;padding-top:12px}
+  .sales-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sales-actions{display:flex;flex-wrap:wrap;gap:8px}.sales-actions .btn{flex:1;min-width:120px}
+  .sales-hint{font-size:.8rem;color:var(--muted)}.sales-record{padding:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px;align-items:center}
+  @media(max-width:560px){.sales-grid{grid-template-columns:1fr}.sales-lines{font-size:.76rem}.sales-lines th,.sales-lines td{padding:6px 2px}.main-tabs{top:68px}.sales-wrap{padding:8px}.sales-panel{padding:10px}}
+
+</style>
+</head>
+<body>
+
+<header>
+  <h1>محلات الزاهر للزيوت والاسبيرات</h1>
+  <p id="hdrSub">نظام إدارة المخزون والأسعار الذكي</p>
+</header>
+<div id="backupBanner" class="no-print" style="display:none;background:#fef3c7;color:#92400e;padding:10px 12px;font-size:.85rem;align-items:center;gap:8px;justify-content:space-between">
+  <span id="backupBannerText"></span>
+  <span style="display:flex;gap:6px"><button class="btn btn-accent" style="padding:6px 10px" onclick="exportData()">💾 نسخ الآن</button><button class="btn btn-outline" style="padding:6px 10px" onclick="this.closest('#backupBanner').style.display='none'">لاحقاً</button></span>
+</div>
+<div id="offlineBar" class="no-print" style="display:none;background:#fee2e2;color:#991b1b;padding:4px 12px;font-size:.75rem;text-align:center">⚠️ لا يوجد اتصال بالإنترنت — التطبيق يعمل محلياً (مسح الباركود وPDF يعملان إن كانا قد حُمّلا سابقاً)</div>
+
+<nav class="main-tabs no-print"><button class="btn btn-outline" id="inventoryTab" onclick="switchPage('inventory')">📦 إدارة المخزون</button><button class="btn btn-primary" id="salesTab" onclick="switchPage('sales')">🧾 المبيعات والفواتير</button></nav>
+<div id="inventoryPage" class="page-view">
+<div class="stats-bar">
+  <div class="stat-box"><span>إجمالي الأصناف</span><strong id="totalItems">0</strong></div>
+  <div class="stat-box"><span>الأصناف المتوفرة</span><strong id="inStockItems">0</strong></div>
+  <div class="stat-box"><span>نتائج البحث</span><strong id="filteredCount">0</strong></div>
+</div>
+
+<div class="toolbar">
+  <div class="search-row">
+    <input type="text" id="searchInput" placeholder="ابحث باسم الصنف أو الباركود..." oninput="resetLimitAndRender()">
+    <button class="btn btn-accent" onclick="openScanner('search')">📷 مسح</button>
+  </div>
+  <div class="search-row">
+    <select id="categoryFilter" onchange="resetLimitAndRender()">
+      <option value="ALL">كل الأقسام</option>
+    </select>
+    <select id="stockFilter" onchange="resetLimitAndRender()">
+      <option value="ALL">كل الكميات</option>
+      <option value="IN">متوفر بالمخزن</option>
+      <option value="OUT">كمية صفر / غير محدد</option>
+    </select>
+  </div>
+  <div class="action-grid">
+    <button class="btn btn-primary" onclick="openItemModal()">➕ إضافة صنف</button>
+    <button class="btn btn-outline" onclick="openBulkModal()">📈 تعديل الأسعار %</button>
+    <button class="btn btn-outline" onclick="exportData()">💾 نسخة احتياطية كاملة</button>
+    <button class="btn btn-outline" onclick="document.getElementById('importFile').click()">📂 استيراد بيانات</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-outline" id="roundBtn" onclick="toggleRounding()">⚙️ تقريب سعر البيع</button>
+    <button class="btn btn-accent" id="installBtn" style="display:none" onclick="installApp()">📲 تثبيت التطبيق</button>
+  </div>
+</div>
+
+<div class="items-list" id="itemsList"></div>
+</div>
+<section id="salesPage" class="page-view active">
+ <div class="sales-wrap">
+  <div class="sales-panel no-print invoice-current">
+   <h2>🧾 الفاتورة الحالية <span class="invoice-count" id="saleCartCount">0</span></h2>
+   <div class="sales-grid"><div><label>اسم العميل (اختياري)</label><input id="saleCustomer" placeholder="عميل نقدي / اسم العميل"></div><div><label>رقم الفاتورة</label><input id="saleInvoiceNo" readonly></div></div>
+   <div style="margin-top:12px"><h2>الأصناف في الفاتورة</h2><div style="overflow-x:auto"><table class="sales-lines"><thead><tr><th>الصنف</th><th>سعر البيع (ج.س)</th><th>الكمية</th><th>الإجمالي (ج.س)</th><th class="no-print">حذف</th></tr></thead><tbody id="saleCartBody"><tr><td colspan="5">لم تتم إضافة أصناف بعد</td></tr></tbody></table></div></div>
+   <div style="margin-top:12px"><h2>الحساب والدفع</h2><div class="sales-grid no-print"><div><label>نوع الخصم</label><select id="saleDiscountType" onchange="renderSaleCart()"><option value="amount">مبلغ ثابت</option><option value="percent">نسبة مئوية</option></select></div><div><label>قيمة الخصم (بالجنيه أو %)</label><input type="number" id="saleDiscount" min="0" step="1" value="0" oninput="renderSaleCart()"></div><div><label>طريقة الدفع</label><select id="salePaymentMethod"><option>نقداً</option><option>بنكك</option><option>تحويل بنكي</option><option>دفع جزئي</option></select></div><div><label>المبلغ المدفوع (بالجنيه)</label><input type="number" id="salePaid" min="0" step="1" placeholder="اتركه فارغاً للسداد الكامل" oninput="renderSaleCart()"></div></div>
+    <div class="sales-total"><span>الإجمالي قبل الخصم (ج.س)</span><strong id="saleSubtotal">0</strong></div><div class="sales-total"><span>الخصم (ج.س)</span><strong id="saleDiscountValue">0</strong></div><div class="sales-total grand"><span>الصافي المستحق (ج.س)</span><strong id="saleGrand">0</strong></div><div class="sales-total"><span>المدفوع (ج.س)</span><strong id="salePaidValue">0</strong></div><div class="sales-total"><span>المتبقي (ج.س)</span><strong id="saleDue">0</strong></div><div class="sales-total"><span>الربح التقديري بعد الخصم</span><strong id="saleProfit">0</strong></div>
+    <div class="sales-actions no-print" style="margin-top:12px"><button class="btn btn-success" onclick="completeSale()">✔ اعتماد البيع وخصم المخزون</button><button class="btn btn-outline" onclick="downloadInvoicePDF()">📄 تنزيل الفاتورة PDF</button><button class="btn btn-success" onclick="sendInvoiceWhatsApp()">🟢 إرسال PDF عبر واتساب</button><button class="btn btn-outline" onclick="holdSale()">⏸ تعليق الفاتورة</button><button class="btn btn-outline" onclick="clearSale()">فاتورة جديدة</button></div>
+   </div>
+  </div>
+  <div class="sales-panel no-print sales-search-panel"><h2>🔎 البحث عن صنف وإضافته للفاتورة</h2><label>ابحث باسم الصنف أو الباركود</label><div class="sales-search"><input id="saleSearch" placeholder="اكتب اسم الصنف أو امسح الباركود..." oninput="scheduleSaleSearch()"><button class="btn btn-accent" onclick="openScanner('sale')">📷 مسح</button></div><p class="sales-hint" id="saleResultsHint">جميع الأصناف ظاهرة أدناه. استخدم البحث لتصفية القائمة.</p><div id="saleResults" class="sales-results"></div></div>
+  <div class="sales-panel no-print"><h2>الفواتير والسجل</h2><div class="sales-actions"><button class="btn btn-outline" onclick="showSalesHistory()">📚 سجل المبيعات</button><button class="btn btn-outline" onclick="showHeldSales()">⏸ الفواتير المعلقة</button><button class="btn btn-outline" onclick="showReturns()">↩ المرتجعات</button></div><div id="salesRecords" style="margin-top:10px"></div></div>
+ </div>
+</section>
+
+<!-- نافذة إضافة / تعديل صنف -->
+<div class="modal" id="itemModal">
+  <div class="modal-content">
+    <h2 id="modalTitle">إضافة صنف جديد</h2>
+    <input type="hidden" id="editId">
+    <div class="form-group">
+      <label>اسم الصنف</label>
+      <input type="text" id="itemName" required>
+    </div>
+    <div class="form-group">
+      <label>القسم</label>
+      <input type="text" id="itemCategory" list="catSuggestions" value="قطع غيار عامة">
+      <datalist id="catSuggestions"></datalist>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <div class="form-group">
+        <label>سعر الشراء (بالألف)</label>
+        <input type="number" step="0.001" id="itemBuy" oninput="updatePriceHints()"><small id="hintBuy" style="color:#475569"></small>
+      </div>
+      <div class="form-group">
+        <label>سعر البيع (بالألف)</label>
+        <input type="number" step="0.001" id="itemSell" oninput="updatePriceHints()"><small id="hintSell" style="color:#475569"></small>
+      </div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <div class="form-group">
+        <label>الكمية المتوفرة</label>
+        <input type="text" id="itemQty" value="0">
+      </div>
+      <div class="form-group">
+        <label>ملاحظة / وحدة</label>
+        <input type="text" id="itemNote" placeholder="مثال: جوز، طقم...">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>رمز الباركود / QR</label>
+      <div class="search-row">
+        <input type="text" id="itemBarcode">
+        <button class="btn btn-accent" type="button" onclick="openScanner('assign')">📷</button>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:16px;">
+      <button class="btn btn-success" style="flex:1" onclick="saveItem()">حفظ</button>
+      <button class="btn btn-outline" onclick="closeModal('itemModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة التعديل الجماعي للأسعار -->
+<div class="modal" id="bulkModal">
+  <div class="modal-content">
+    <h2>تعديل الأسعار الجماعي (%)</h2>
+    <p style="font-size:0.85rem; color:var(--muted);">أدخل النسبة المئوية للزيادة (أو بالسالب للتخفيض). سيتم حفظ نسخة احتياطية للتراجع الفوري.</p>
+    <div class="form-group">
+      <label>نسبة التعديل على سعر الشراء (%)</label>
+      <input type="number" step="0.1" id="buyPercent" value="10">
+    </div>
+    <div class="form-group">
+      <label>نسبة التعديل على سعر البيع (%)</label>
+      <input type="number" step="0.1" id="sellPercent" value="8">
+    </div>
+    <div class="form-group">
+      <label>نطاق التطبيق</label>
+      <select id="bulkScope">
+        <option value="ALL">جميع الأصناف في المتجر</option>
+        <option value="FILTERED">الأصناف المعروضة حالياً فقط</option>
+      </select>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px;">
+      <button class="btn btn-primary" onclick="applyBulkUpdate()">تطبيق التعديل الآن</button>
+      <button class="btn btn-danger" id="undoBtn" style="display:none;" onclick="undoBulkUpdate()">↩️ تراجع عن آخر تعديل جماعي</button>
+      <button class="btn btn-outline" onclick="closeModal('bulkModal')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+<!-- نافذة الماسح الضوئي -->
+<div class="modal" id="scannerModal">
+  <div class="modal-content">
+    <h2>مسح الباركود / QR Code</h2>
+    <div id="reader"></div>
+    <button class="btn btn-outline" style="width:100%" onclick="stopScanner()">إغلاق الكاميرا</button>
+  </div>
+</div>
+
+<script>
+const DEFAULT_DATA = [];
+
+// تقريب سعر البيع لأقرب ألف: أقل من 500 للأسفل، و500 فأكثر للأعلى.
+// الإعدادات (التقريب قابل للإيقاف من زر ⚙️ في إدارة المخزون)
+function lsGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch (_) { return fallback; }
+}
+function lsSet(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+  catch (e) { alert('تعذر الحفظ: مساحة التخزين ممتلئة أو غير متاحة. صدّر نسخة احتياطية الآن.'); return false; }
+}
+let settings = Object.assign({ roundSell: true }, lsGet('alzaher_settings_v1', {}));
+function roundSellPrice(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return settings.roundSell ? Math.floor(n + 0.5) : Math.round(n * 1000) / 1000;
+}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toggleRounding(){
+  settings.roundSell = !settings.roundSell; lsSet('alzaher_settings_v1', settings);
+  items = items.map(item => ({ ...item, sellPrice: roundSellPrice(item.sellPrice) }));
+  saveToStorage(); updateRoundBtn();
+  alert(settings.roundSell ? 'تم تفعيل تقريب سعر البيع لأقرب رقم صحيح (أقل من .5 للأسفل، و.5 فأكثر للأعلى).' : 'تم إيقاف التقريب. الأسعار الحالية تبقى كما هي، وستُحفظ الأسعار الجديدة بثلاث خانات عشرية.');
+}
+function updateRoundBtn(){const b=document.getElementById('roundBtn');if(b)b.textContent='⚙️ تقريب البيع: '+(settings.roundSell?'مفعّل':'متوقف');}
+
+let items = lsGet('alzaher_items_v1', null) || DEFAULT_DATA;
+// تطبيق التقريب على أسعار البيع فقط مع عدم المساس بأسعار الشراء أو الكميات.
+items = items.map(item => ({ ...item, sellPrice: roundSellPrice(item.sellPrice) }));
+let backupItems = lsGet('alzaher_backup_v1', null);
+let displayLimit = 100;
+let html5QrCode = null;
+let scanMode = 'search';
+
+let inventoryNeedsRender=true;
+function saveToStorage() {
+  items = items.map(item => ({ ...item, sellPrice: roundSellPrice(item.sellPrice) }));
+  lsSet('alzaher_items_v1', items);
+  updateCategories();updateHeader();
+  if(document.getElementById('inventoryPage')?.classList.contains('active')){renderItems();inventoryNeedsRender=false;}
+  else inventoryNeedsRender=true;
+}
+
+const CUR='ج.س';
+function fmtPrice(n){return Math.round((Number(n)||0)*1000).toLocaleString('en-US');}
+function updatePriceHints(){['Buy','Sell'].forEach(k=>{const v=parseFloat(document.getElementById('item'+k).value);const h=document.getElementById('hint'+k);if(h)h.textContent=Number.isFinite(v)?'= '+fmtPrice(v)+' '+CUR:'';});}
+function updateHeader(){const h=document.getElementById('hdrSub');if(h)h.textContent=items.length+' صنف • الأسعار بالجنيه السوداني ('+CUR+')';}
+function resetLimitAndRender() {
+  displayLimit = 100;
+  renderItems();
+}
+
+function loadMore() {
+  displayLimit += 100;
+  renderItems();
+}
+
+function updateCategories() {
+  const cats = [...new Set(items.map(i => i.category || 'قطع غيار عامة'))];
+  const filterSel = document.getElementById('categoryFilter');
+  const currentVal = filterSel.value;
+  filterSel.innerHTML = '<option value="ALL">كل الأقسام</option>' +
+    cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  if (cats.includes(currentVal)) filterSel.value = currentVal;
+
+  document.getElementById('catSuggestions').innerHTML =
+    cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+}
+
+function getFilteredItems() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const cat = document.getElementById('categoryFilter').value;
+  const stock = document.getElementById('stockFilter').value;
+
+  return items.filter(item => {
+    const matchText = item.name.toLowerCase().includes(q) || (item.barcode && item.barcode.toLowerCase().includes(q));
+    const matchCat = cat === 'ALL' || item.category === cat;
+    const numQty = qtyNum(item.quantity);
+    const matchStock = stock === 'ALL' || (stock === 'IN' && numQty > 0) || (stock === 'OUT' && numQty <= 0);
+    return matchText && matchCat && matchStock;
+  });
+}
+
+function renderItems() {
+  const filtered = getFilteredItems();
+  document.getElementById('totalItems').textContent = items.length;
+  document.getElementById('inStockItems').textContent = items.filter(i => qtyNum(i.quantity) > 0).length;
+  document.getElementById('filteredCount').textContent = filtered.length;
+
+  const list = document.getElementById('itemsList');
+  const visible = filtered.slice(0, displayLimit);
+  if (!items.length) {
+    document.getElementById('itemsList').innerHTML = '<div class="item-card" style="text-align:center;line-height:1.9"><b>لا توجد أصناف بعد</b><br>اضغط <b>📂 استيراد بيانات</b> واختر ملف النسخة الاحتياطية (AlzaherStore_Backup.json)، أو أضف أصنافك بزر <b>➕ إضافة صنف</b>.</div>';
+    return;
+  }
+  list.innerHTML = visible.map(item => `
+    <div class="item-card">
+      <div class="item-header">
+        <div class="item-title">${escapeHtml(item.name)}</div>
+        <span class="badge">${escapeHtml(item.category)}</span>
+      </div>
+      <div class="prices-grid">
+        <div><span>سعر الشراء (${CUR})</span><strong class="buy-val">${fmtPrice(item.buyPrice)}</strong></div>
+        <div><span>سعر البيع (${CUR})</span><strong class="sell-val">${fmtPrice(item.sellPrice)}</strong></div>
+        <div><span>الكمية</span><strong class="qty-val">${escapeHtml(item.quantity)} ${item.note ? '('+escapeHtml(item.note)+')' : ''}</strong></div>
+      </div>
+      <div class="item-footer">
+        <span>رمز: ${escapeHtml(item.barcode) || '-'}</span>
+        <div class="card-actions">
+          <button class="btn btn-outline" onclick="openItemModal(${item.id})">✏️ تعديل</button>
+          <button class="btn btn-danger" onclick="deleteItem(${item.id})">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join('') + (filtered.length > displayLimit ? `<button class="btn btn-outline" style="width:100%; margin:8px 0;" onclick="loadMore()">عرض المزيد (${filtered.length - displayLimit} صنف متبقي)</button>` : '');
+}
+
+function nextBarcode(){
+  let max = 1000;
+  for (const i of items) { const m = /^ZHR-(\d+)$/.exec(String(i.barcode||'')); if (m) max = Math.max(max, Number(m[1])); }
+  return 'ZHR-' + (max + 1);
+}
+function openItemModal(id = null) {
+  document.getElementById('itemModal').classList.add('active');
+  setTimeout(updatePriceHints, 0);
+  if (id) {
+    const item = items.find(i => i.id === id);
+    document.getElementById('modalTitle').textContent = 'تعديل بيانات الصنف';
+    document.getElementById('editId').value = item.id;
+    document.getElementById('itemName').value = item.name;
+    document.getElementById('itemCategory').value = item.category;
+    document.getElementById('itemBuy').value = item.buyPrice;
+    document.getElementById('itemSell').value = item.sellPrice;
+    document.getElementById('itemQty').value = item.quantity;
+    document.getElementById('itemNote').value = item.note || '';
+    document.getElementById('itemBarcode').value = item.barcode || '';
+  } else {
+    document.getElementById('modalTitle').textContent = 'إضافة صنف جديد';
+    document.getElementById('editId').value = '';
+    document.getElementById('itemName').value = '';
+    document.getElementById('itemBuy').value = '';
+    document.getElementById('itemSell').value = '';
+    document.getElementById('itemQty').value = '0';
+    document.getElementById('itemNote').value = '';
+    document.getElementById('itemBarcode').value = nextBarcode();
+  }
+}
+
+function newItemId(){let n=Date.now();const used=new Set(items.map(i=>i.id));while(used.has(n))n++;return n;}
+function saveItem() {
+  const id = document.getElementById('editId').value;
+  const name = document.getElementById('itemName').value.trim();
+  if (!name) return alert('يرجى إدخال اسم الصنف');
+  const bc = document.getElementById('itemBarcode').value.trim();
+  if (bc) {
+    const dup = items.find(i => String(i.barcode||'').toLowerCase() === bc.toLowerCase() && String(i.id) !== String(id));
+    if (dup) return alert('هذا الباركود مستخدم مسبقاً للصنف: ' + dup.name);
+  }
+
+  const data = {
+    id: id ? Number(id) : newItemId(),
+    name,
+    category: document.getElementById('itemCategory').value.trim() || 'قطع غيار عامة',
+    buyPrice: parseFloat(document.getElementById('itemBuy').value) || 0,
+    sellPrice: roundSellPrice(parseFloat(document.getElementById('itemSell').value) || 0),
+    quantity: document.getElementById('itemQty').value.trim() || '0',
+    note: document.getElementById('itemNote').value.trim(),
+    barcode: document.getElementById('itemBarcode').value.trim()
+  };
+
+  if (id) {
+    const idx = items.findIndex(i => i.id === Number(id));
+    items[idx] = data;
+  } else {
+    items.unshift(data);
+  }
+  closeModal('itemModal');
+  saveToStorage();
+}
+
+function deleteItem(id) {
+  if (confirm('هل أنت متأكد من حذف هذا الصنف؟')) {
+    items = items.filter(i => i.id !== id);
+    saveToStorage();
+  }
+}
+
+function openBulkModal() {
+  document.getElementById('undoBtn').style.display = backupItems ? 'block' : 'none';
+  document.getElementById('bulkModal').classList.add('active');
+}
+
+function applyBulkUpdate() {
+  const buyPct = parseFloat(document.getElementById('buyPercent').value) || 0;
+  const sellPct = parseFloat(document.getElementById('sellPercent').value) || 0;
+  const scope = document.getElementById('bulkScope').value;
+
+  backupItems = JSON.parse(JSON.stringify(items));
+  lsSet('alzaher_backup_v1', backupItems);
+
+  const targetIds = scope === 'ALL' ? null : new Set(getFilteredItems().map(i => i.id));
+
+  items = items.map(item => {
+    if (!targetIds || targetIds.has(item.id)) {
+      return {
+        ...item,
+        buyPrice: Number((item.buyPrice * (1 + buyPct / 100)).toFixed(3)),
+        sellPrice: roundSellPrice(item.sellPrice * (1 + sellPct / 100))
+      };
+    }
+    return item;
+  });
+
+  saveToStorage();
+  closeModal('bulkModal');
+  alert('تم تحديث الأسعار بنجاح!');
+}
+
+function undoBulkUpdate() {
+  if (!backupItems) return;
+  items = backupItems;
+  backupItems = null;
+  localStorage.removeItem('alzaher_backup_v1');
+  saveToStorage();
+  closeModal('bulkModal');
+  alert('تم استرجاع الأسعار السابقة بنجاح.');
+}
+
+function openScanner(mode) {
+  scanMode = mode;
+  if (typeof Html5QrCode === 'undefined') { alert('مكتبة المسح غير محمّلة بعد. اتصل بالإنترنت مرة واحدة ثم أعد فتح التطبيق.'); return; }
+  document.getElementById('scannerModal').classList.add('active');
+  html5QrCode = new Html5QrCode("reader");
+  html5QrCode.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    (decodedText) => {
+      stopScanner();
+      if (scanMode === 'search') {
+        document.getElementById('searchInput').value = decodedText;
+        resetLimitAndRender();
+      } else if (scanMode === 'sale') {
+        document.getElementById('saleSearch').value = decodedText;
+        addSaleByBarcode(decodedText);
+      } else {
+        document.getElementById('itemBarcode').value = decodedText;
+      }
+    }
+  ).catch(err => {
+    alert('تعذر فتح الكاميرا: تأكد من فتح التطبيق عبر متصفح Chrome ومنح صلاحية الكاميرا.');
+    stopScanner();
+  });
+}
+
+function stopScanner() {
+  if (html5QrCode) {
+    html5QrCode.stop().catch(() => {});
+    html5QrCode = null;
+  }
+  closeModal('scannerModal');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function buildFullBackup() {
+  return {
+    app: 'AlzaherStore', version: 2, exportedAt: new Date().toISOString(),
+    items,
+    sales: lsGet('alzaher_sales_v1', []),
+    held: lsGet('alzaher_held_sales_v1', []),
+    returns: lsGet('alzaher_returns_v1', []),
+    saleCounter: Number(localStorage.getItem('alzaher_sale_counter_v1') || 0),
+    settings
+  };
+}
+function exportData() {
+  const blob = new Blob([JSON.stringify(buildFullBackup(), null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  const d = new Date().toISOString().slice(0, 10);
+  a.href = URL.createObjectURL(blob);
+  a.download = 'AlzaherStore_Backup_' + d + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  try { localStorage.setItem('alzaher_last_backup_v1', String(Date.now())); } catch (_) {}
+  const bn = document.getElementById('backupBanner'); if (bn) bn.style.display = 'none';
+}
+function checkBackupReminder() {
+  const last = Number(localStorage.getItem('alzaher_last_backup_v1') || 0);
+  const days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+  const hasSales = lsGet('alzaher_sales_v1', []).length > 0;
+  if ((days === null && hasSales) || (days !== null && days >= 7)) {
+    document.getElementById('backupBannerText').textContent = days === null ? '⚠️ لم تأخذ نسخة احتياطية بعد. بياناتك على هذا الجهاز فقط.' : '⚠️ آخر نسخة احتياطية قبل ' + days + ' يوم.';
+    document.getElementById('backupBanner').style.display = 'flex';
+  }
+}
+function cleanImportedItems(arr) {
+  const seen = new Set(); const out = [];
+  for (const raw of arr) {
+    if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string' || !raw.name.trim()) continue;
+    let id = Number(raw.id); if (!Number.isFinite(id) || seen.has(id)) { id = Date.now() + out.length; while (seen.has(id)) id++; }
+    seen.add(id);
+    out.push({
+      id, name: raw.name.trim(),
+      buyPrice: Number.isFinite(parseFloat(raw.buyPrice)) ? parseFloat(raw.buyPrice) : 0,
+      sellPrice: roundSellPrice(parseFloat(raw.sellPrice) || 0),
+      quantity: String(raw.quantity ?? '0'),
+      note: String(raw.note ?? ''),
+      category: String(raw.category || 'قطع غيار عامة'),
+      barcode: String(raw.barcode ?? '')
+    });
+  }
+  return out;
+}
+function importData(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const isOld = Array.isArray(data);
+      if (!isOld && !(data && data.app === 'AlzaherStore' && Array.isArray(data.items))) throw new Error('bad');
+      const newItems = cleanImportedItems(isOld ? data : data.items);
+      if (!newItems.length) return alert('الملف لا يحتوي على أصناف صالحة. لم يتم أي تغيير.');
+      const msg = 'سيتم استبدال البيانات الحالية بـ ' + newItems.length + ' صنف' + (isOld ? '' : ' و' + (data.sales || []).length + ' فاتورة') + '.\nسيتم حفظ نسخة من بياناتك الحالية قبل الاستبدال. المتابعة؟';
+      if (!confirm(msg)) return;
+      try { localStorage.setItem('alzaher_preimport_v1', JSON.stringify(buildFullBackup())); } catch (_) {}
+      items = newItems;
+      if (!isOld) {
+        if (Array.isArray(data.sales)) lsSet('alzaher_sales_v1', data.sales);
+        if (Array.isArray(data.held)) lsSet('alzaher_held_sales_v1', data.held);
+        if (Array.isArray(data.returns)) lsSet('alzaher_returns_v1', data.returns);
+        if (Number.isFinite(Number(data.saleCounter))) localStorage.setItem('alzaher_sale_counter_v1', String(Number(data.saleCounter)));
+      }
+      saveToStorage();
+      alert('تم استيراد ' + newItems.length + ' صنف بنجاح. سيُعاد تشغيل الصفحة.');
+      location.reload();
+    } catch {
+      alert('صيغة الملف غير صالحة. لم يتم أي تغيير.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+// ===== وحدة المبيعات المستقلة المرتبطة بمخزون النظام =====
+let saleCart = [];
+let salesHistory = lsGet('alzaher_sales_v1', []);
+let heldSales = lsGet('alzaher_held_sales_v1', []);
+let saleCounter = Number(localStorage.getItem('alzaher_sale_counter_v1') || 0);
+let currentSaleId = null;
+const saleNum = v => { const n=Number(v); return Number.isFinite(n)?n:0; };
+const qtyNum = v => { const normalized=String(v??'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^0-9.\-]/g,''); const n=parseFloat(normalized); return Number.isFinite(n)?n:0; };
+// كل الأسعار والمبالغ مخزنة بالألف جنيه (18 = 18,000 ج.س) وتُعرض كاملة بالجنيه
+const money = n => Math.round(saleNum(n)*1000).toLocaleString('en-US');
+function nextInvoiceNo(){return 'AZ-'+String(saleCounter+1).padStart(6,'0');}
+function switchPage(page){document.getElementById('inventoryPage').classList.toggle('active',page==='inventory');document.getElementById('salesPage').classList.toggle('active',page==='sales');document.getElementById('inventoryTab').className='btn '+(page==='inventory'?'btn-primary':'btn-outline');document.getElementById('salesTab').className='btn '+(page==='sales'?'btn-primary':'btn-outline');if(page==='inventory'&&inventoryNeedsRender){renderItems();inventoryNeedsRender=false;}if(page==='sales'){if(!document.getElementById('saleInvoiceNo').value)document.getElementById('saleInvoiceNo').value=nextInvoiceNo();searchSaleItems();renderSaleCart();}}
+let saleResultsLimit=80;
+let saleSearchTimer=null;
+function scheduleSaleSearch(){if(saleSearchTimer)clearTimeout(saleSearchTimer);saleResultsLimit=80;const box=document.getElementById('saleResults');if(box)box.scrollTop=0;saleSearchTimer=setTimeout(searchSaleItems,110);}
+function showMoreSaleItems(){saleResultsLimit+=80;searchSaleItems();}
+function searchSaleItems(){
+ const input=document.getElementById('saleSearch');if(!input)return;
+ const q=input.value.trim().toLowerCase();const box=document.getElementById('saleResults');const hint=document.getElementById('saleResultsHint');
+ const found=[];
+ for(const i of items){const name=String(i.name||'').toLowerCase();const barcode=String(i.barcode||'').toLowerCase();if(!q||name.includes(q)||barcode.includes(q))found.push(i);}
+ if(hint)hint.textContent=q?`نتائج البحث: ${found.length} صنف`:`جميع الأصناف: ${found.length} صنف — ابحث بالاسم أو الباركود لتصفية القائمة`;
+ const visible=found.slice(0,saleResultsLimit);const previousScrollTop=box.scrollTop;window.saleFilteredCount=found.length;
+ box.innerHTML=visible.map(i=>`<div class="sales-result"><div><b>${escapeSale(i.name)}</b><small>المتوفر: ${qtyNum(i.quantity)} ${escapeSale(i.note||'')} • ${escapeSale(i.barcode||'')}</small></div><div><b>${money(roundSellPrice(i.sellPrice))} ج.س</b><button class="btn btn-primary" style="margin-right:5px;padding:7px" onclick="addSaleItem(${Number(i.id)})">إضافة</button></div></div>`).join('')||'<p class="sales-hint">لا توجد نتائج مطابقة</p>';
+ box.scrollTop=previousScrollTop;
+ if(found.length>visible.length && box.scrollHeight<=box.clientHeight+20) { saleResultsLimit=Math.min(found.length,saleResultsLimit+80); searchSaleItems(); }
+}
+
+function escapeSale(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function addSaleByBarcode(code){const item=items.find(i=>String(i.barcode||'').toLowerCase()===String(code).toLowerCase());if(item){addSaleItem(item.id);document.getElementById('saleSearch').value='';searchSaleItems();}else{searchSaleItems();alert('لم يتم العثور على صنف بهذا الباركود.');}}
+function addSaleItem(id){const item=items.find(i=>i.id===id);if(!item)return;const price=roundSellPrice(item.sellPrice);if(price<=0){alert('سعر بيع هذا الصنف صفر. حدّث سعره من إدارة المخزون قبل البيع.');return;}const available=qtyNum(item.quantity);if(available<=0){alert('هذا الصنف غير متوفر في المخزون.');return;}let line=saleCart.find(x=>x.itemId===id);if(line){if(line.qty+1>available){alert('الكمية المطلوبة تتجاوز المتوفر.');return;}line.qty++;}else saleCart.push({itemId:id,name:item.name,barcode:item.barcode||'',price,buyPrice:saleNum(item.buyPrice),qty:1,available,note:item.note||''});renderSaleCart();}
+function updateSaleQty(id,value){const line=saleCart.find(x=>x.itemId===id);if(!line)return;const q=Math.floor(saleNum(value));if(q<1){saleCart=saleCart.filter(x=>x.itemId!==id);}else if(q>line.available){alert('الكمية أكبر من المتوفر ('+line.available+').');}else line.qty=q;renderSaleCart();}
+function removeSaleItem(id){saleCart=saleCart.filter(x=>x.itemId!==id);renderSaleCart();}
+function saleTotals(){const subtotal=saleCart.reduce((a,x)=>a+x.price*x.qty,0);const raw=saleNum(document.getElementById('saleDiscount').value);const discount=Math.min(subtotal,Math.max(0,document.getElementById('saleDiscountType').value==='percent'?subtotal*raw/100:raw/1000));const total=Math.max(0,subtotal-discount);const paidField=document.getElementById('salePaid').value;const paid=paidField===''?total:Math.max(0,Math.min(total,saleNum(paidField)/1000));const profitBefore=saleCart.reduce((a,x)=>a+(x.price-x.buyPrice)*x.qty,0);return {subtotal,discount,total,paid,due:total-paid,profit:subtotal?profitBefore*(total/subtotal):0};}
+function renderSaleCart(){const countEl=document.getElementById('saleCartCount');if(countEl)countEl.textContent=saleCart.reduce((n,x)=>n+x.qty,0);const body=document.getElementById('saleCartBody');body.innerHTML=saleCart.length?saleCart.map(x=>`<tr><td>${escapeSale(x.name)}<small style="display:block;color:#64748b">${escapeSale(x.note)}</small></td><td>${money(x.price)}</td><td><input aria-label="الكمية" type="number" min="1" max="${x.available}" value="${x.qty}" onchange="updateSaleQty(${x.itemId},this.value)"></td><td>${money(x.price*x.qty)}</td><td class="no-print"><button class="btn btn-danger" style="padding:5px" onclick="removeSaleItem(${x.itemId})">×</button></td></tr>`).join(''):'<tr><td colspan="5">لم تتم إضافة أصناف بعد</td></tr>';const t=saleTotals();for(const [id,val] of Object.entries({saleSubtotal:t.subtotal,saleDiscountValue:t.discount,saleGrand:t.total,salePaidValue:t.paid,saleDue:t.due,saleProfit:t.profit}))document.getElementById(id).textContent=money(val);}
+function clearSale(){if(saleCart.length&&!confirm('مسح محتويات الفاتورة الحالية؟'))return;saleCart=[];currentSaleId=null;document.getElementById('saleCustomer').value='';document.getElementById('saleDiscount').value='0';document.getElementById('salePaid').value='';document.getElementById('saleInvoiceNo').value=nextInvoiceNo();renderSaleCart();}
+function snapshotSale(){const t=saleTotals();return {id:currentSaleId||('sale-'+Date.now()),invoiceNo:document.getElementById('saleInvoiceNo').value||nextInvoiceNo(),date:new Date().toISOString(),customer:document.getElementById('saleCustomer').value.trim(),paymentMethod:document.getElementById('salePaymentMethod').value,lines:saleCart.map(x=>({...x})),subtotal:t.subtotal,discount:t.discount,total:t.total,paid:t.paid,due:t.due,profit:t.profit,returnedLines:{}};}
+function completeSale(){if(!saleCart.length){alert('أضف صنفاً واحداً على الأقل.');return;}for(const line of saleCart){const item=items.find(i=>i.id===line.itemId);if(!item||qtyNum(item.quantity)<line.qty){alert('المخزون غير كافٍ للصنف: '+line.name+'؛ لم يتم اعتماد الفاتورة.');return;}}const sale=snapshotSale();if(!confirm('تأكيد الفاتورة '+sale.invoiceNo+' بإجمالي '+money(sale.total)+'؟ سيتم خصم الكميات من المخزون.'))return;
+ // فحص كامل قبل الخصم ثم تطبيق جميع الخصومات مرة واحدة
+ saleCart.forEach(line=>{const item=items.find(i=>i.id===line.itemId);const remaining=qtyNum(item.quantity)-line.qty;item.quantity=String(Math.max(0,remaining));});saveToStorage();salesHistory.unshift(sale);localStorage.setItem('alzaher_sales_v1',JSON.stringify(salesHistory));saleCounter++;localStorage.setItem('alzaher_sale_counter_v1',String(saleCounter));currentSaleId=null;renderSalesRecords();alert('تم اعتماد الفاتورة وخصم المخزون بنجاح. يمكنك الآن تنزيلها PDF أو إرسالها عبر واتساب.');clearSale();}
+function holdSale(){if(!saleCart.length){alert('لا توجد أصناف لتعليقها.');return;}const s=snapshotSale();s.heldAt=new Date().toISOString();heldSales.unshift(s);localStorage.setItem('alzaher_held_sales_v1',JSON.stringify(heldSales));saleCounter++;localStorage.setItem('alzaher_sale_counter_v1',String(saleCounter));clearSale();renderSalesRecords();alert('تم تعليق الفاتورة دون خصم المخزون.');}
+function showSalesHistory(){const box=document.getElementById('salesRecords');box.innerHTML=salesHistory.map(s=>`<div class="sales-record"><div><b>${s.invoiceNo}</b><small style="display:block">${escapeSale(s.customer||'عميل نقدي')} • ${new Date(s.date).toLocaleString('ar')}</small><small>الإجمالي: ${money(s.total)} • المتبقي: ${money(s.due)}</small></div><div class="sales-actions"><button class="btn btn-outline" onclick="viewSale('${s.id}')">عرض</button><button class="btn btn-outline" onclick="returnSale('${s.id}')">مرتجع</button><button class="btn btn-outline" onclick="downloadSalePDF('${s.id}')">PDF</button><button class="btn btn-success" onclick="sendSaleWhatsApp('${s.id}')">واتساب</button></div></div>`).join('')||'<p class="sales-hint">لا توجد فواتير مسجلة بعد.</p>';}
+function showHeldSales(){document.getElementById('salesRecords').innerHTML=heldSales.map(s=>`<div class="sales-record"><div><b>${s.invoiceNo}</b><small style="display:block">${escapeSale(s.customer||'عميل نقدي')} • ${money(s.total)}</small></div><button class="btn btn-primary" onclick="resumeHeld('${s.id}')">استكمال</button></div>`).join('')||'<p class="sales-hint">لا توجد فواتير معلقة.</p>';}
+function resumeHeld(id){const idx=heldSales.findIndex(s=>s.id===id);if(idx<0)return;const s=heldSales[idx];saleCart=s.lines.map(x=>({...x,available:qtyNum(items.find(i=>i.id===x.itemId)?.quantity)}));for(const l of saleCart){const it=items.find(i=>i.id===l.itemId);if(!it||qtyNum(it.quantity)<l.qty){alert('المخزون الحالي لا يكفي للصنف: '+l.name);return;}}currentSaleId=s.id;document.getElementById('saleInvoiceNo').value=s.invoiceNo;document.getElementById('saleCustomer').value=s.customer||'';document.getElementById('saleDiscount').value=Math.round(saleNum(s.discount)*1000);document.getElementById('saleDiscountType').value='amount';document.getElementById('salePaymentMethod').value=s.paymentMethod||'نقداً';document.getElementById('salePaid').value=Math.round(saleNum(s.paid)*1000);heldSales.splice(idx,1);localStorage.setItem('alzaher_held_sales_v1',JSON.stringify(heldSales));renderSaleCart();document.getElementById('saleSearch').focus();}
+function viewSale(id){const s=salesHistory.find(x=>x.id===id);if(!s)return;alert('فاتورة '+s.invoiceNo+'\nالعميل: '+(s.customer||'عميل نقدي')+'\nالأصناف: '+s.lines.map(x=>x.name+' × '+x.qty).join('\n')+'\nالإجمالي: '+money(s.total)+'\nالخصم: '+money(s.discount)+'\nالربح: '+money(s.profit));}
+function reprintSale(id){downloadSalePDF(id);} async function downloadSalePDF(id){const s=salesHistory.find(x=>x.id===id);if(!s)return;await exportInvoicePDF(s);} async function downloadInvoicePDF(){if(!saleCart.length){alert('أضف صنفاً واحداً على الأقل أولاً.');return;}await exportInvoicePDF(snapshotSale());}
+
+async function exportInvoicePDF(s){
+ try{
+  const blob=await buildInvoicePDFBlob(s);
+  const filename=`Invoice_${String(s.invoiceNo).replace(/[^\w-]/g,'_')}.pdf`;
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+  return blob;
+ }catch(err){console.error('PDF generation failed',err);alert('تعذر إنشاء الفاتورة PDF: '+(err.message||err));return null;}
+}
+async function ensureJsPDF(){
+ if(window.jspdf&&window.jspdf.jsPDF)return window.jspdf.jsPDF;
+ if(window.jsPDF)return window.jsPDF;
+ await new Promise((resolve,reject)=>{const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';sc.onload=resolve;sc.onerror=()=>reject(new Error('تعذر تحميل محرك PDF. تحقق من اتصال الإنترنت ثم أعد المحاولة.'));document.head.appendChild(sc);});
+ const C=window.jspdf&&window.jspdf.jsPDF||window.jsPDF;if(!C)throw new Error('لم يتم تشغيل محرك PDF بصورة صحيحة.');return C;
+}
+let LOGO_IMG=null;
+function ensureLogo(){return new Promise(res=>{if(LOGO_IMG)return res(LOGO_IMG);const im=new Image();im.onload=()=>{LOGO_IMG=im;res(im);};im.onerror=()=>res(null);im.src='logo.png';});}
+ensureLogo();
+function invoiceCanvasPage(s,lines,pageIndex,pageCount){
+ const W=1240,H=1754,canvas=document.createElement('canvas');canvas.width=W;canvas.height=H;
+ const c=canvas.getContext('2d',{alpha:false});c.fillStyle='#fff';c.fillRect(0,0,W,H);c.fillStyle='#111';c.textBaseline='middle';
+ const right=1170,left=70,center=620;
+ function txt(t,x,y,size=30,align='right',weight='normal',color='#111',maxW=1050) {c.save();c.direction='rtl';c.textAlign=align;c.font=`${weight} ${size}px Arial, Tahoma, sans-serif`;c.fillStyle=color;c.fillText(String(t??''),x,y,maxW);c.restore();}
+ function line(x1,y1,x2,y2,width=2,color='#333'){c.beginPath();c.strokeStyle=color;c.lineWidth=width;c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();}
+ function cellText(t,x1,x2,y,size=25,bold=false){txt(t,(x1+x2)/2,y,size,'center',bold?'bold':'normal');}
+ if(pageIndex===0){
+  // Store identity is the main centered heading; customer data stays at the upper right.
+  txt('محلات الزاهر للزيوت وإسبيرات السيارات والدراجات النارية',center,50,34,'center','bold','#183b68');
+  // شعار المحل في منتصف الصفحة
+  if(LOGO_IMG){c.drawImage(LOGO_IMG,center-55,78,110,110);}
+  txt('فاتورة مبيعات',center,218,28,'center','bold');
+  // العميل والرقم يمين، والتاريخ يسار
+  txt('العميل: '+(s.customer||'عميل نقدي'),right,112,27,'right','bold','#111',470);
+  txt('الرقم: '+s.invoiceNo,right,165,27,'right','bold','#111',470);
+  txt('التاريخ: '+new Date(s.date||Date.now()).toLocaleDateString('en-CA'),left,112,27,'left','bold','#111',470);
+  line(left,245,right,245,5,'#222');
+ } else {txt('فاتورة رقم: '+s.invoiceNo+' — متابعة',right,90,28,'right','bold');line(left,145,right,145,4,'#222');}
+ const top=pageIndex===0?275:190, rowH=58;
+ const edges=[right,1090,525,390,220,left];
+ c.fillStyle='#eeeeee';c.fillRect(left,top,right-left,rowH);
+ for(let i=0;i<edges.length-1;i++){line(edges[i],top,edges[i],top+rowH+lines.length*rowH,2,'#555');}
+ line(left,top,right,top,2);line(left,top+rowH,right,top+rowH,3);
+ const heads=['م','الصنف','الكمية','السعر','الإجمالي'];
+ for(let i=0;i<heads.length;i++)cellText(heads[i],edges[i+1],edges[i],top+rowH/2,25,true);
+ lines.forEach((x,i)=>{
+  const y=top+rowH*(i+1), vals=[String((pageIndex*10)+i+1),x.name,String(x.qty),money(x.price),money(Number(x.qty)*Number(x.price))];
+  for(let j=0;j<vals.length;j++)cellText(vals[j],edges[j+1],edges[j],y+rowH/2,j===1?23:24,j===4);
+  line(left,y+rowH,right,y+rowH,2,'#777');
+ });
+ if(pageIndex===pageCount-1){
+  // Compact financial summary on the lower-left, with labels adjacent to their amounts.
+  const y=top+rowH*(lines.length+1)+48;
+  const summaryLeft=left, summaryRight=520, amountCenter=190, labelRight=455;
+  c.fillStyle='#f2f2f2';c.fillRect(summaryLeft,y-28,summaryRight-summaryLeft,58);
+  txt('إجمالي الكميات',labelRight,y,26,'right','bold');
+  txt(s.lines.reduce((a,x)=>a+Number(x.qty||0),0),amountCenter,y,27,'center','bold','#111',225);
+  line(summaryLeft,y+43,summaryRight,y+43,3,'#222');
+  const totals=[['إجمالي الفاتورة',s.subtotal],['الخصم',s.discount],['الصافي',s.total],['المدفوع',s.paid],['المتبقي',s.due]];
+  let ty=y+92;
+  totals.forEach(([label,value],i)=>{
+   txt(label,labelRight,ty,i===2?29:26,i===2?'right':'right',i===2?'bold':'normal');
+   txt(money(value),amountCenter,ty,i===2?31:27,'center','bold','#111',225);
+   line(85,ty+27,295,ty+27,i===2?2:1,'#888');
+   ty+=53;
+  });
+  txt('طريقة الدفع: '+(s.paymentMethod||'نقداً'),labelRight,ty+8,24,'right');
+  txt('جميع المبالغ بالجنيه السوداني (ج.س)',labelRight,ty+48,22,'right','bold','#444');
+  txt('شكراً لتعاملكم معنا',center,1515,40,'center','bold','#183b68');
+  line(left,H-90,right,H-90,3,'#222');
+  txt('محلات الزاهر للزيوت وإسبيرات السيارات والدراجات النارية',center,H-52,19,'center','normal','#555');
+ }else{
+  txt('يتبع...',center,H-70,24,'center','bold','#555');
+ }
+ return canvas;
+}
+async function buildInvoicePDFBlob(s){
+ if(!s||!Array.isArray(s.lines)||!s.lines.length)throw new Error('الفاتورة لا تحتوي على أصناف.');
+ const JsPDF=await ensureJsPDF();await ensureLogo();
+ const perPage=10,pageCount=Math.ceil(s.lines.length/perPage),pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
+ for(let page=0;page<pageCount;page++){
+  const subset=s.lines.slice(page*perPage,(page+1)*perPage);const canvas=invoiceCanvasPage(s,subset,page,pageCount);
+  const data=canvas.toDataURL('image/jpeg',0.94);
+  if(page>0)pdf.addPage('a4','portrait');
+  pdf.addImage(data,'JPEG',0,0,210,297,undefined,'FAST');
+  canvas.width=1;canvas.height=1;
+ }
+ const blob=pdf.output('blob');if(!blob||blob.size<5000)throw new Error('ملف PDF الناتج فارغ أو غير مكتمل.');return blob;
+}
+function invoiceShareMessage(s){return `محلات الزاهر للزيوت والاسبيرات\nفاتورة رقم: ${s.invoiceNo}\nالعملة: الجنيه السوداني\nالإجمالي: ${money(s.subtotal)} ج.س\nالخصم: ${money(s.discount)} ج.س\nالصافي: ${money(s.total)} ج.س\nالمدفوع: ${money(s.paid)} ج.س\nالمتبقي: ${money(s.due)} ج.س\nشكراً لتعاملكم معنا.`;}
+async function sendInvoiceWhatsApp(suppliedSale=null){
+ const s=suppliedSale||(saleCart.length?snapshotSale():null);
+ if(!s||!s.lines||!s.lines.length){alert('لا توجد فاتورة لإرسالها. أضف أصنافاً أو افتح فاتورة من سجل المبيعات.');return;}
+ try{
+  const blob=await buildInvoicePDFBlob(s);const filename=`Invoice_${String(s.invoiceNo).replace(/[^\w-]/g,'_')}.pdf`;
+  const file=new File([blob],filename,{type:'application/pdf'});const message=invoiceShareMessage(s);
+  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:`فاتورة ${s.invoiceNo}`,text:message});}
+  else{
+   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+   const wa='https://wa.me/?text='+encodeURIComponent(message+'\n\nأرفق ملف الفاتورة PDF الذي تم تنزيله.');window.open(wa,'_blank');
+   alert('تم تنزيل ملف PDF وفتح واتساب. أرفق ملف الفاتورة من مجلد التنزيلات قبل الإرسال.');
+  }
+ }catch(err){console.error('WhatsApp PDF failed',err);alert('تعذر تجهيز الفاتورة للمشاركة: '+(err.message||err));}
+}
+
+async function sendSaleWhatsApp(id){const s=salesHistory.find(x=>x.id===id);if(!s)return;await sendInvoiceWhatsApp(s);}
+
+function returnSale(id){const s=salesHistory.find(x=>x.id===id);if(!s)return;const choices=s.lines.filter(l=>l.qty-(s.returnedLines?.[l.itemId]||0)>0);if(!choices.length){alert('تم إرجاع كامل أصناف الفاتورة سابقاً.');return;}const list=choices.map((l,i)=>(i+1)+'. '+l.name+' (المتبقي للإرجاع '+(l.qty-(s.returnedLines?.[l.itemId]||0))+')').join('\n');const pick=Number(prompt('اختر رقم الصنف المراد إرجاعه:\n'+list));const line=choices[pick-1];if(!line)return;const max=line.qty-(s.returnedLines?.[line.itemId]||0);const q=Number(prompt('كمية الإرجاع؟ الحد الأقصى '+max,1));if(!Number.isInteger(q)||q<1||q>max)return alert('كمية الإرجاع غير صحيحة.');const item=items.find(x=>x.id===line.itemId);if(!item)return alert('الصنف غير موجود بالمخزون حالياً.');item.quantity=String(qtyNum(item.quantity)+q);s.returnedLines=s.returnedLines||{};s.returnedLines[line.itemId]=(s.returnedLines[line.itemId]||0)+q;s.returnTotal=(s.returnTotal||0)+q*line.price;s.profit=(s.profit||0)-q*(line.price-line.buyPrice);saveToStorage();localStorage.setItem('alzaher_sales_v1',JSON.stringify(salesHistory));const returns=JSON.parse(localStorage.getItem('alzaher_returns_v1')||'[]');returns.unshift({id:'ret-'+Date.now(),saleId:s.id,invoiceNo:s.invoiceNo,itemId:line.itemId,itemName:line.name,qty:q,amount:q*line.price,date:new Date().toISOString()});localStorage.setItem('alzaher_returns_v1',JSON.stringify(returns));alert('تم تسجيل المرتجع وإعادة الكمية إلى المخزون.');showSalesHistory();}
+function showReturns(){const r=JSON.parse(localStorage.getItem('alzaher_returns_v1')||'[]');document.getElementById('salesRecords').innerHTML=r.map(x=>`<div class="sales-record"><div><b>مرتجع ${x.invoiceNo}</b><small style="display:block">${escapeSale(x.itemName)} × ${x.qty} • ${new Date(x.date).toLocaleString('ar')}</small></div><strong>${money(x.amount)}</strong></div>`).join('')||'<p class="sales-hint">لا توجد مرتجعات.</p>';}
+function renderSalesRecords(){showSalesHistory();}
+// بدء الشاشة مع رقم الفاتورة التالي
+
+updateCategories();
+if(!localStorage.getItem('alzaher_items_v1'))localStorage.setItem('alzaher_items_v1', JSON.stringify(items));
+document.getElementById('saleInvoiceNo').value=nextInvoiceNo();
+const saleResultsBox=document.getElementById('saleResults');if(saleResultsBox)saleResultsBox.addEventListener('scroll',()=>{if(saleResultsBox.scrollTop+saleResultsBox.clientHeight>=saleResultsBox.scrollHeight-100){const count=window.saleFilteredCount||0;if(saleResultsLimit<count){saleResultsLimit=Math.min(count,saleResultsLimit+80);searchSaleItems();}}});
+switchPage('sales');
+updateHeader(); updateRoundBtn(); checkBackupReminder();
+
+// ===== PWA =====
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; const b=document.getElementById('installBtn'); if(b) b.style.display='inline-flex'; });
+window.addEventListener('appinstalled', () => { deferredInstall = null; const b=document.getElementById('installBtn'); if(b) b.style.display='none'; });
+function installApp(){ if(!deferredInstall) return alert('افتح قائمة المتصفح ⋮ واختر "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية".'); deferredInstall.prompt(); deferredInstall.userChoice.finally(()=>{deferredInstall=null;document.getElementById('installBtn').style.display='none';}); }
+function updateOnline(){ document.getElementById('offlineBar').style.display = navigator.onLine ? 'none' : 'block'; }
+window.addEventListener('online', updateOnline); window.addEventListener('offline', updateOnline); updateOnline();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+// طلب تخزين دائم حتى لا يمسح المتصفح البيانات تلقائياً
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+</script>
+</body>
+</html>
